@@ -1,3 +1,6 @@
+import { HandRank, evaluateHand, compareHands } from "./hand-evaluator";
+import { getRandomNames } from "./poker/player-names";
+
 export type GameStage = "preflop" | "flop" | "turn" | "river" | "showdown";
 export type PlayerAction =
   | "fold"
@@ -9,6 +12,8 @@ export type PlayerAction =
 
 export interface Player {
   position: number;
+  name: string;
+  isYou: boolean;
   stack: number;
   bet: number;
   folded: boolean;
@@ -68,8 +73,12 @@ export function createInitialState(stacks: number[]): GameState {
 
   const deck = shuffleDeck();
 
+  const playerNames = getRandomNames(stacks.length);
+
   const players: Player[] = stacks.map((stack, index) => ({
     position: index,
+    name: playerNames[index].name,
+    isYou: playerNames[index].isYou,
     stack,
     bet: 0,
     folded: false,
@@ -99,9 +108,9 @@ export function createInitialState(stacks: number[]): GameState {
     boardCards: [],
     actionLog: [
       "6-Max Texas Hold'em Hand Started",
-      `Dealer: Player ${dealerPosition}`,
-      `Small Blind: Player ${smallBlindPosition} posts ${smallBlindSize}`,
-      `Big Blind: Player ${bigBlindPosition} posts ${bigBlindSize}`,
+      `Dealer: ${players[dealerPosition].name}`,
+      `Small Blind: ${players[smallBlindPosition].name} posts ${smallBlindSize}`,
+      `Big Blind: ${players[bigBlindPosition].name} posts ${bigBlindSize}`,
     ],
     actionSequence: [],
     minRaise: bigBlindSize,
@@ -232,7 +241,7 @@ export function performAction(
   switch (action) {
     case "fold":
       player.folded = true;
-      logMessage = `Player ${player.position} folds`;
+      logMessage = `${player.name} folds`;
       shortAction = "f";
       break;
 
@@ -240,7 +249,7 @@ export function performAction(
       if (newState.currentBet - player.bet > 0) {
         throw new Error("Cannot check when there is a bet to call");
       }
-      logMessage = `Player ${player.position} checks`;
+      logMessage = `${player.name} checks`;
       shortAction = "x";
       break;
 
@@ -252,7 +261,7 @@ export function performAction(
       const actualCall = Math.min(callAmount, player.stack);
       player.bet += actualCall;
       player.stack -= actualCall;
-      logMessage = `Player ${player.position} calls ${actualCall}`;
+      logMessage = `${player.name} calls ${actualCall}`;
       shortAction = "c";
       break;
     }
@@ -272,7 +281,7 @@ export function performAction(
       player.stack -= amount;
       newState.currentBet = amount;
       newState.minRaise = amount;
-      logMessage = `Player ${player.position} bets ${amount}`;
+      logMessage = `${player.name} bets ${amount}`;
       shortAction = `b${amount}`;
       break;
 
@@ -296,7 +305,7 @@ export function performAction(
       player.stack -= raiseAmount;
       newState.currentBet = amount;
       newState.minRaise = amount - state.currentBet; 
-      logMessage = `Player ${player.position} raises to ${amount}`;
+      logMessage = `${player.name} raises to ${amount}`;
       shortAction = `r${amount}`;
       break;
 
@@ -309,7 +318,7 @@ export function performAction(
         newState.currentBet = player.bet;
       }
 
-      logMessage = `Player ${player.position} goes all-in for ${chipsCommitted}`;
+      logMessage = `${player.name} goes all-in for ${chipsCommitted}`;
       shortAction = "allin";
       break;
 
@@ -383,4 +392,46 @@ export function getCallAmount(state: GameState): number {
 
 export function getActivePlayerCount(state: GameState): number {
   return state.players.filter((p) => !p.folded && p.stack > 0).length;
+}
+
+// NEW: Winner determination functions
+export function determineWinners(state: GameState): { winners: number[]; winningHand?: HandRank } {
+  const activePlayers = state.players.filter(p => !p.folded);
+  
+  // If only one player remains, they win
+  if (activePlayers.length === 1) {
+    return { winners: [activePlayers[0].position] };
+  }
+  
+  // At showdown, evaluate all hands
+  const playerHands = activePlayers.map(player => {
+    const holeCards = [player.holeCards.slice(0, 2), player.holeCards.slice(2, 4)];
+    return {
+      player: player.position,
+      hand: evaluateHand(holeCards, state.boardCards)
+    };
+  });
+  
+  // Find the best hand(s) - handle ties
+  let bestHands = [playerHands[0]];
+  for (let i = 1; i < playerHands.length; i++) {
+    const comparison = compareHands(bestHands[0].hand, playerHands[i].hand);
+    if (comparison < 0) {
+      bestHands = [playerHands[i]];
+    } else if (comparison === 0) {
+      bestHands.push(playerHands[i]);
+    }
+  }
+  
+  return { 
+    winners: bestHands.map(ph => ph.player),
+    winningHand: bestHands[0].hand
+  };
+}
+
+export function getWinningPlayerNames(state: GameState, winnerPositions: number[]): string {
+  return winnerPositions.map(pos => {
+    const player = state.players.find(p => p.position === pos);
+    return player ? player.name : `Player ${pos}`;
+  }).join(' and ');
 }
