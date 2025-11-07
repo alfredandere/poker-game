@@ -17,7 +17,7 @@ export interface Player {
   stack: number;
   bet: number;
   folded: boolean;
-  holeCards: string;
+  holeCards: string[];
   isDealer: boolean;
   isSmallBlind: boolean;
   isBigBlind: boolean;
@@ -82,7 +82,7 @@ export function createInitialState(stacks: number[]): GameState {
     stack,
     bet: 0,
     folded: false,
-    holeCards: deck[index * 2] + deck[index * 2 + 1],
+    holeCards: [deck[index * 2], deck[index * 2 + 1]],
     isDealer: index === dealerPosition,
     isSmallBlind: index === smallBlindPosition,
     isBigBlind: index === bigBlindPosition,
@@ -353,22 +353,31 @@ export function dealBoard(state: GameState): GameState {
 
   if (newState.stage === "flop" && newState.boardCards.length === 0) {
     newState.remainingDeck.shift(); // Burn
-    newState.boardCards = [
+    const flopCards = [
       newState.remainingDeck.shift()!,
       newState.remainingDeck.shift()!,
       newState.remainingDeck.shift()!,
     ];
-    newState.actionLog.push(`*** FLOP ***: ${newState.boardCards.join(" ")}`);
+    newState.boardCards = flopCards;
+    newState.actionLog.push(`*** FLOP ***: ${flopCards.join(" ")}`);
+    
+    newState.actionSequence.push(`flop:${flopCards.join('')}`);
+    
   } else if (newState.stage === "turn" && newState.boardCards.length === 3) {
     newState.remainingDeck.shift(); // Burn
-    const card = newState.remainingDeck.shift()!;
-    newState.boardCards.push(card);
-    newState.actionLog.push(`*** TURN ***: ${card}`);
+    const turnCard = newState.remainingDeck.shift()!;
+    newState.boardCards.push(turnCard);
+    newState.actionLog.push(`*** TURN ***: ${turnCard}`);
+    
+    newState.actionSequence.push(`turn:${turnCard}`);
+    
   } else if (newState.stage === "river" && newState.boardCards.length === 4) {
     newState.remainingDeck.shift(); // Burn
-    const card = newState.remainingDeck.shift()!;
-    newState.boardCards.push(card);
-    newState.actionLog.push(`*** RIVER ***: ${card}`);
+    const riverCard = newState.remainingDeck.shift()!;
+    newState.boardCards.push(riverCard);
+    newState.actionLog.push(`*** RIVER ***: ${riverCard}`);
+    
+    newState.actionSequence.push(`river:${riverCard}`);
   }
 
   return newState;
@@ -394,25 +403,20 @@ export function getActivePlayerCount(state: GameState): number {
   return state.players.filter((p) => !p.folded && p.stack > 0).length;
 }
 
-// NEW: Winner determination functions
 export function determineWinners(state: GameState): { winners: number[]; winningHand?: HandRank } {
   const activePlayers = state.players.filter(p => !p.folded);
   
-  // If only one player remains, they win
   if (activePlayers.length === 1) {
     return { winners: [activePlayers[0].position] };
   }
   
-  // At showdown, evaluate all hands
   const playerHands = activePlayers.map(player => {
-    const holeCards = [player.holeCards.slice(0, 2), player.holeCards.slice(2, 4)];
     return {
       player: player.position,
-      hand: evaluateHand(holeCards, state.boardCards)
+      hand: evaluateHand(player.holeCards, state.boardCards)
     };
   });
   
-  // Find the best hand(s) - handle ties
   let bestHands = [playerHands[0]];
   for (let i = 1; i < playerHands.length; i++) {
     const comparison = compareHands(bestHands[0].hand, playerHands[i].hand);

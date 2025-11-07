@@ -36,11 +36,12 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
         </div>
         
         <div className="flex gap-1 mb-2 justify-center">
-          {player.holeCards.split(' ').map((card, idx) => (
+          {/* Now holeCards is already an array, so we can map directly */}
+          {player.holeCards.map((card, idx) => (
             <PlayingCard 
               key={idx} 
               card={card} 
-              hidden={!showCards}
+              hidden={!showCards || player.folded}
             />
           ))}
         </div>

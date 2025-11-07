@@ -128,38 +128,40 @@ export default function PokerGame() {
     }
   };
 
-  const saveHandToAPI = async (finalState: GameState, winners: number[], winningHand?: HandRank) => {
-    setSaving(true);
-    const toastId = showToast.loading('Saving hand results...');
+const saveHandToAPI = async (finalState: GameState, winners: number[], winningHand?: HandRank) => {
+  setSaving(true);
+  const toastId = showToast.loading('Saving hand results...');
+  
+  try {
+    const hole_cards = finalState.players.flatMap(p => p.holeCards);
     
-    try {
-      const handData = {
-        stacks: finalState.initialStacks, 
-        dealer_position: finalState.dealerPosition,
-        small_blind_position: finalState.smallBlindPosition, 
-        big_blind_position: finalState.bigBlindPosition,
-        hole_cards: finalState.players.map(p => p.holeCards),
-        actions: finalState.actionSequence.join(','),
-        board_cards: finalState.boardCards.join(''),
-        winners: winners,
-        winning_hand: winningHand?.name || 'Fold',
-        pot: finalState.pot,
-      };
+    const handData = {
+      stacks: finalState.initialStacks, 
+      dealer_position: finalState.dealerPosition,
+      small_blind_position: finalState.smallBlindPosition, 
+      big_blind_position: finalState.bigBlindPosition,
+      hole_cards: hole_cards,
+      actions: finalState.actionSequence.join(','),
+      board_cards: finalState.boardCards.join(''),
+      winners: winners,
+      winning_hand: winningHand?.name || 'Fold',
+      pot: finalState.pot,
+    };
 
-      console.log('Saving hand:', handData);
-      const savedHand = await createHand(handData);
-      
-      showToast.update(toastId, { 
-        message: `Hand saved! ID: ${savedHand.id.slice(0, 8)}` 
-      });
-      await loadHandHistory();
-    } catch (error) {
-      console.error('Failed to save hand:', error);
-      showToast.update(toastId, { message: `Failed to save hand: ${(error as Error).message}` });
-    } finally {
-      setSaving(false);
-    }
-  };
+    console.log('Saving hand:', handData);
+    const savedHand = await createHand(handData);
+    
+    showToast.update(toastId, { 
+      message: `Hand saved! ID: ${savedHand.id.slice(0, 8)}` 
+    });
+    await loadHandHistory();
+  } catch (error) {
+    console.error('Failed to save hand:', error);
+    showToast.update(toastId, { message: `Failed to save hand: ${(error as Error).message}` });
+  } finally {
+    setSaving(false);
+  }
+};
 
   // Setup screen
   if (!gameState) {
