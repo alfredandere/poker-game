@@ -128,40 +128,46 @@ export default function PokerGame() {
     }
   };
 
-const saveHandToAPI = async (finalState: GameState, winners: number[], winningHand?: HandRank) => {
-  setSaving(true);
-  const toastId = showToast.loading('Saving hand results...');
-  
-  try {
-    const hole_cards = finalState.players.flatMap(p => p.holeCards);
+  const saveHandToAPI = async (finalState: GameState, winners: number[], winningHand?: HandRank) => {
+    setSaving(true);
+    const toastId = showToast.loading('Saving hand results...');
     
-    const handData = {
-      stacks: finalState.initialStacks, 
-      dealer_position: finalState.dealerPosition,
-      small_blind_position: finalState.smallBlindPosition, 
-      big_blind_position: finalState.bigBlindPosition,
-      hole_cards: hole_cards,
-      actions: finalState.actionSequence.join(','),
-      board_cards: finalState.boardCards.join(''),
-      winners: winners,
-      winning_hand: winningHand?.name || 'Fold',
-      pot: finalState.pot,
-    };
+    try {
+      // Convert each player's hole cards array to a concatenated string
+      const hole_cards = finalState.players.map(p => p.holeCards.join(''));
+      
+      const handData = {
+        stacks: finalState.initialStacks, 
+        dealer_position: finalState.dealerPosition,
+        small_blind_position: finalState.smallBlindPosition, 
+        big_blind_position: finalState.bigBlindPosition,
+        hole_cards: hole_cards,
+        actions: finalState.actionSequence.join(','),
+        board_cards: finalState.boardCards.join(''),
+        winners: winners,
+        winning_hand: winningHand?.name || 'Fold',
+        pot: finalState.pot,
+      };
 
-    console.log('Saving hand:', handData);
-    const savedHand = await createHand(handData);
-    
-    showToast.update(toastId, { 
-      message: `Hand saved! ID: ${savedHand.id.slice(0, 8)}` 
-    });
-    await loadHandHistory();
-  } catch (error) {
-    console.error('Failed to save hand:', error);
-    showToast.update(toastId, { message: `Failed to save hand: ${(error as Error).message}` });
-  } finally {
-    setSaving(false);
-  }
-};
+      console.log('Saving hand:', {
+        ...handData,
+        hole_cards_length: handData.hole_cards.length,
+        hole_cards_sample: handData.hole_cards.slice(0, 2)
+      });
+
+      const savedHand = await createHand(handData);
+      
+      showToast.update(toastId, { 
+        message: `Hand saved! ID: ${savedHand.id.slice(0, 8)}` 
+      });
+      await loadHandHistory();
+    } catch (error) {
+      console.error('Failed to save hand:', error);
+      showToast.update(toastId, { message: `Failed to save hand: ${(error as Error).message}` });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Setup screen
   if (!gameState) {
@@ -169,12 +175,12 @@ const saveHandToAPI = async (finalState: GameState, winners: number[], winningHa
       <div className="min-h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 p-4">
         <Toaster />
         <div className="max-w-7xl mx-auto">
-          <div className="mb-6">
-            <h1 className="text-4xl font-bold text-white mb-2">Texas Hold&apos;em Poker</h1>
-            <p className="text-gray-300">6-Max No Limit • $20/$40 Blinds</p>
+          <div className="mb-8 text-center">
+            <h1 className="text-5xl font-bold text-white mb-3">Texas Hold&apos;em Poker</h1>
+            <p className="text-gray-300 text-xl">6-Max No Limit • $20/$40 Blinds</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             <div className="lg:col-span-2">
               <GameSetup
                 stackInputs={stackInputs}
@@ -218,54 +224,99 @@ const saveHandToAPI = async (finalState: GameState, winners: number[], winningHa
         />
       )}
       
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Texas Hold&apos;em</h1>
-            <div className="flex gap-2 items-center">
-              <Badge className="text-base px-3 py-1 bg-amber-500 text-white border-amber-600">
-                {gameState.stage.toUpperCase()}
-              </Badge>
-              <span className="text-gray-300 text-sm">
-                {currentPlayer.name} to act
-              </span>
+      <div className="max-w-7xl mx-auto flex flex-col h-screen max-h-screen">
+        {/* Header - Compact */}
+        <div className="flex justify-between items-center mb-4 px-4 py-3 bg-green-800/50 rounded-lg border border-green-600/30">
+          <div className="flex items-center gap-6">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Texas Hold&apos;em</h1>
+              <div className="flex gap-2 items-center mt-1">
+                <Badge className="text-sm px-3 py-1 bg-amber-500 text-white border-amber-600">
+                  {gameState.stage.toUpperCase()}
+                </Badge>
+                <span className="text-gray-200 text-sm">
+                  Pot: <span className="font-bold text-white">${gameState.pot}</span>
+                </span>
+              </div>
+            </div>
+            <div className="text-gray-200">
+              <span className="font-semibold text-white">{currentPlayer.name}</span> to act
             </div>
           </div>
           <Button 
             onClick={resetGame} 
-            className="bg-red-600 hover:bg-red-700 text-white"
+            variant="outline"
+            className="bg-red-600 hover:bg-red-700 text-white border-red-700"
           >
             Reset Game
           </Button>
         </div>
 
-        {/* Main Game Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          {/* Game Table */}
-          <div className="lg:col-span-2">
-            <GameTable gameState={gameState} />
+        {/* Main Game Area */}
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
+          {/* Game Table - Dominant Center Piece */}
+          <div className="flex-1 lg:flex-[2] bg-green-800/20 rounded-xl border-2 border-green-600/30 p-4 min-h-0">
+            <div className="h-full flex items-center justify-center">
+              <GameTable gameState={gameState} />
+            </div>
           </div>
 
-          {/* Action Panel */}
-          <div>
-            <ActionPanel
-              gameState={gameState}
-              validActions={validActions}
-              betAmount={betAmount}
-              onBetAmountChange={setBetAmount}
-              onAction={handleAction}
-              saving={saving}
-            />
-          </div>
+          {/* Sidebar - Action Panel and History */}
+          <div className="lg:w-80 flex flex-col gap-4 min-h-0">
+            {/* Action Panel - Prominent */}
+            <div className="bg-gray-900 rounded-xl border-2 border-amber-500/50 shadow-lg shadow-amber-500/10">
+              <ActionPanel
+                gameState={gameState}
+                validActions={validActions}
+                betAmount={betAmount}
+                onBetAmountChange={setBetAmount}
+                onAction={handleAction}
+                saving={saving}
+              />
+            </div>
 
-          {/* Sidebar */}
-          <div className="space-y-4">
-            <HandHistory
-              hands={handHistory}
-              loading={loadingHistory}
-              onRefresh={loadHandHistory}
-            />
+            {/* Hand History - Scrollable */}
+            <div className="flex-1 bg-gray-900/80 rounded-xl border border-gray-700 min-h-0">
+              <HandHistory
+                hands={handHistory}
+                loading={loadingHistory}
+                onRefresh={loadHandHistory}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Actions Bar - Bottom Row */}
+        <div className="mt-4 p-3 bg-green-800/30 rounded-lg border border-green-600/20">
+          <div className="flex flex-wrap gap-3 justify-center">
+            {/* Game Info */}
+            <div className="flex items-center gap-4 text-sm text-gray-200">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span>Dealer</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span>Small Blind</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span>Big Blind</span>
+              </div>
+            </div>
+
+            {/* Quick Stats */}
+            <div className="flex items-center gap-6 text-sm text-gray-200">
+              <div>
+                Players: <span className="font-bold text-white">{gameState.players.filter(p => !p.folded).length}/{gameState.players.length}</span>
+              </div>
+              <div>
+                Min Raise: <span className="font-bold text-white">${gameState.minRaise}</span>
+              </div>
+              <div>
+                Your Stack: <span className="font-bold text-white">${currentPlayer.stack}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
