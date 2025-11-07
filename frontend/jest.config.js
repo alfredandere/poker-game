@@ -1,0 +1,19 @@
+module.exports = {
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  roots: ['<rootDir>'],
+  testMatch: [
+    '**/__tests__/**/*.test.ts'
+  ],
+  transform: {
+    '^.+\\.(ts|tsx)$': 'ts-jest',
+  },
+  moduleNameMapping: {
+    '^@/(.*)$': '<rootDir>/$1',
+  },
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
+  collectCoverageFrom: [
+    'lib/**/*.ts',
+    '!lib/**/*.d.ts',
+  ],
+};
