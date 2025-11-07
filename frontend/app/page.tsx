@@ -172,7 +172,7 @@ export default function PokerGame() {
   // Setup screen
   if (!gameState) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-gray-900 p-4">
         <Toaster />
         <div className="max-w-7xl mx-auto">
           <div className="mb-8 text-center">
@@ -209,7 +209,7 @@ export default function PokerGame() {
   const currentPlayer = gameState.players[gameState.currentPlayer];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-900 via-green-800 to-emerald-900 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-gray-900 p-4">
       <Toaster />
       
       {/* Winner Celebration Modal */}
@@ -226,7 +226,7 @@ export default function PokerGame() {
       
       <div className="max-w-7xl mx-auto flex flex-col h-screen max-h-screen">
         {/* Header - Compact */}
-        <div className="flex justify-between items-center mb-4 px-4 py-3 bg-green-800/50 rounded-lg border border-green-600/30">
+        <div className="flex justify-between items-center mb-4 px-4 py-3 bg-slate-800/70 rounded-lg border border-slate-600/50">
           <div className="flex items-center gap-6">
             <div>
               <h1 className="text-2xl font-bold text-white">Texas Hold&apos;em</h1>
@@ -255,7 +255,7 @@ export default function PokerGame() {
         {/* Main Game Area */}
         <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0">
           {/* Game Table - Dominant Center Piece */}
-          <div className="flex-1 lg:flex-[2] bg-green-800/20 rounded-xl border-2 border-green-600/30 p-4 min-h-0">
+          <div className="flex-1 lg:flex-[2] bg-slate-800/40 rounded-xl border-2 border-slate-600/50 p-4 min-h-0">
             <div className="h-full flex items-center justify-center">
               <GameTable gameState={gameState} />
             </div>
@@ -264,7 +264,7 @@ export default function PokerGame() {
           {/* Sidebar - Action Panel and History */}
           <div className="lg:w-80 flex flex-col gap-4 min-h-0">
             {/* Action Panel - Prominent */}
-            <div className="bg-gray-900 rounded-xl border-2 border-amber-500/50 shadow-lg shadow-amber-500/10">
+            <div className="bg-slate-800/80 rounded-xl border-2 border-amber-500/50 shadow-lg shadow-amber-500/10">
               <ActionPanel
                 gameState={gameState}
                 validActions={validActions}
@@ -276,7 +276,7 @@ export default function PokerGame() {
             </div>
 
             {/* Hand History - Scrollable */}
-            <div className="flex-1 bg-gray-900/80 rounded-xl border border-gray-700 min-h-0">
+            <div className="flex-1 bg-slate-800/60 rounded-xl border border-slate-700 min-h-0">
               <HandHistory
                 hands={handHistory}
                 loading={loadingHistory}
@@ -287,7 +287,7 @@ export default function PokerGame() {
         </div>
 
         {/* Quick Actions Bar - Bottom Row */}
-        <div className="mt-4 p-3 bg-green-800/30 rounded-lg border border-green-600/20">
+        <div className="mt-4 p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
           <div className="flex flex-wrap gap-3 justify-center">
             {/* Game Info */}
             <div className="flex items-center gap-4 text-sm text-gray-200">

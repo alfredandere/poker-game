@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { PlayingCard } from './PlayingCard';
 import { PlayerCard } from './PlayerCard';
 import { GameState } from '@/lib/poker-engine';
@@ -14,10 +13,10 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState }) => {
   const callAmount = gameState.currentBet - currentPlayer.bet;
 
   return (
-    <Card className="bg-gradient-to-br from-green-700 to-green-600 border-4 border-amber-600">
+    <Card className="bg-gradient-to-br from-slate-800 via-slate-700 to-gray-800 border-4 border-amber-600/80 shadow-2xl">
       <CardContent className="p-6">
         <div className="text-center mb-4">
-          <div className="inline-block bg-amber-500 rounded-full px-6 py-3">
+          <div className="inline-block bg-amber-500/90 rounded-full px-6 py-3 shadow-lg">
             <div className="text-white text-xs font-semibold">POT</div>
             <div className="text-2xl font-bold text-white">${gameState.pot}</div>
           </div>
@@ -28,7 +27,7 @@ export const GameTable: React.FC<GameTableProps> = ({ gameState }) => {
             <PlayingCard key={idx} card={card} />
           ))}
           {gameState.stage === 'preflop' && (
-            <div className="text-white text-center py-4 opacity-50">Waiting for flop...</div>
+            <div className="text-white text-center py-4 opacity-70">Waiting for flop...</div>
           )}
         </div>
 

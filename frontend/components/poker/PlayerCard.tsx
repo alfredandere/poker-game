@@ -35,8 +35,8 @@ export const PlayerCard: React.FC<PlayerCardProps> = ({
           <div className="text-white font-bold text-sm">P{player.position}</div>
         </div>
         
+        {/* Fixed: Properly display both hole cards */}
         <div className="flex gap-1 mb-2 justify-center">
-          {/* Now holeCards is already an array, so we can map directly */}
           {player.holeCards.map((card, idx) => (
             <PlayingCard 
               key={idx} 
