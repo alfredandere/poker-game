@@ -1,0 +1,42 @@
+[tool.poetry]
+name = "backend"
+version = "0.1.0"
+description = "Poker game backend with FastAPI"
+authors = ["Alfred Andere <alfredandere@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = ">=0.121.0,<0.122.0"
+uvicorn = {extras = ["standard"], version = ">=0.38.0,<0.39.0"}
+psycopg2-binary = ">=2.9.11,<3.0.0"
+pokerkit = ">=0.6.4,<0.7.0"
+pydantic = ">=2.12.3,<3.0.0"
+pydantic-settings = ">=2.11.0,<3.0.0"
+python-dotenv = ">=1.2.1,<2.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=8.4.2,<9.0.0"
+pytest-asyncio = ">=1.2.0,<2.0.0"
+httpx = ">=0.28.1,<0.29.0"
+black = ">=25.9.0,<26.0.0"
+ruff = ">=0.14.3,<0.15.0"
+mypy = ">=1.18.2,<2.0.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
