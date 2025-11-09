@@ -26,15 +26,30 @@ export const PlayingCard: React.FC<PlayingCardProps> = ({ card, hidden = false }
   }[suit];
 
   return (
-    <div className={`w-12 h-16 bg-white rounded border ${isRed ? 'border-red-300' : 'border-gray-800'} flex flex-col items-center justify-between p-1 shadow`}>
-      <div className={`text-sm font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-        {rank}
+    <div className="w-11 h-25 bg-white rounded border border-gray-200 shadow-md flex flex-col items-center justify-between p-1 transition-transform hover:scale-105">
+      {/* Top Corner - Rank and Suit */}
+      <div className="self-start flex flex-col items-start leading-none">
+        <div className={`text-sm font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
+          {rank}
+        </div>
+        <div className={`text-xs ${isRed ? 'text-red-600' : 'text-gray-900'} -mt-0.5`}>
+          {suitSymbol}
+        </div>
       </div>
+
+      {/* Center Suit */}
       <div className={`text-lg ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
         {suitSymbol}
       </div>
-      <div className={`text-sm font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
-        {rank}
+
+      {/* Bottom Corner - Rotated Rank and Suit */}
+      <div className="self-end flex flex-col items-end leading-none transform rotate-180">
+        <div className={`text-sm font-bold ${isRed ? 'text-red-600' : 'text-gray-900'}`}>
+          {rank}
+        </div>
+        <div className={`text-xs ${isRed ? 'text-red-600' : 'text-gray-900'} -mt-0.5`}>
+          {suitSymbol}
+        </div>
       </div>
     </div>
   );
