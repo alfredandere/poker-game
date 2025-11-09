@@ -181,30 +181,41 @@ def parse_actions(actions: str, board_cards: str) -> List[Tuple[str, any]]:
     parsed = []
     parts = [p.strip() for p in actions.split(',') if p.strip()]
 
-    player_action_count = 0
-    flop_injected = False
-    turn_injected = False
-    river_injected = False
-
     for part in parts:
         try:
+            # Check for board card actions
+            if ':' in part:
+                action_type, cards = part.split(':', 1)
+                action_type = action_type.lower()
+                
+                if action_type == "flop":
+                    if len(cards) != 6:
+                        raise ValueError(f"Flop must have exactly 3 cards (6 chars), got: {cards}")
+                    parsed.append(("flop", cards))
+                elif action_type == "turn":
+                    if len(cards) != 2:
+                        raise ValueError(f"Turn must have exactly 1 card (2 chars), got: {cards}")
+                    parsed.append(("turn", cards))
+                elif action_type == "river":
+                    if len(cards) != 2:
+                        raise ValueError(f"River must have exactly 1 card (2 chars), got: {cards}")
+                    parsed.append(("river", cards))
+                else:
+                    raise ValueError(f"Unknown board action: {action_type}")
+            
             # Parse player actions
-            if part == "f":
+            elif part == "f":
                 parsed.append(("fold", 0))
-                player_action_count += 1
             elif part == "x":
                 parsed.append(("check", 0))
-                player_action_count += 1
             elif part == "c":
                 parsed.append(("call", 0))
-                player_action_count += 1
             elif part.startswith("b") and len(part) > 1:
                 try:
                     amount = int(part[1:])
                     if amount <= 0:
                         raise ValueError(f"Invalid bet amount: {amount}")
                     parsed.append(("bet", amount))
-                    player_action_count += 1
                 except ValueError:
                     raise ValueError(f"Invalid bet format: {part}")
             elif part.startswith("r") and len(part) > 1:
@@ -213,24 +224,12 @@ def parse_actions(actions: str, board_cards: str) -> List[Tuple[str, any]]:
                     if amount <= 0:
                         raise ValueError(f"Invalid raise amount: {amount}")
                     parsed.append(("raise", amount))
-                    player_action_count += 1
                 except ValueError:
                     raise ValueError(f"Invalid raise format: {part}")
             elif part == "allin":
                 parsed.append(("allin", 0))
-                player_action_count += 1
             else:
                 raise ValueError(f"Unknown action: {part}")
-
-            if not flop_injected and player_action_count >= 6 and len(board_cards) >= 6:
-                parsed.append(("flop", board_cards[:6]))
-                flop_injected = True
-            elif not turn_injected and flop_injected and player_action_count >= 12 and len(board_cards) >= 8:
-                parsed.append(("turn", board_cards[6:8]))
-                turn_injected = True
-            elif not river_injected and turn_injected and player_action_count >= 18 and len(board_cards) >= 10:
-                parsed.append(("river", board_cards[8:10]))
-                river_injected = True
 
         except ValueError as e:
             raise ValueError(f"Invalid action '{part}': {str(e)}")
